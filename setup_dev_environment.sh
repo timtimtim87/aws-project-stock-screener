@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "🔧 Setting up development environment..."
+echo "Setting up development environment..."
 
 # Create virtual environment
 python3 -m venv venv
@@ -9,5 +9,5 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-echo "✅ Development environment ready!"
+echo "Development environment ready."
 echo "To activate: source venv/bin/activate"

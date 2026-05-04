@@ -11,7 +11,7 @@ echo ""
 
 # Check if AWS CLI is configured
 if ! aws sts get-caller-identity &> /dev/null; then
-    echo "❌ Error: AWS CLI not configured or credentials invalid"
+    echo "Error: AWS CLI not configured or credentials invalid"
     echo "Run 'aws configure' first"
     exit 1
 fi
@@ -42,7 +42,7 @@ echo "=========================================="
 echo ""
 
 for REGION in $REGIONS; do
-    echo "📍 Region: $REGION"
+    echo "Region: $REGION"
     echo "---"
     
     # Get all VPCs in this region
@@ -101,7 +101,7 @@ for REGION in $REGIONS; do
         if [ ! -z "$NAT_GWS" ]; then
             NAT_COUNT=$(echo $NAT_GWS | wc -w)
             HAS_RESOURCES=true
-            RESOURCE_LIST="$RESOURCE_LIST    • $NAT_COUNT NAT Gateway(s) 💰 (COSTS MONEY!)\n"
+            RESOURCE_LIST="$RESOURCE_LIST    • $NAT_COUNT NAT Gateway(s) (COSTS MONEY)\n"
         fi
         
         # Check RDS instances
@@ -142,7 +142,7 @@ for REGION in $REGIONS; do
         
         # Display results
         if [ "$HAS_RESOURCES" = true ]; then
-            echo "  Status: ⚠️  HAS RESOURCES - KEEP THIS"
+            echo "  Status: HAS RESOURCES - KEEP THIS"
             echo -e "$RESOURCE_LIST"
             OCCUPIED_VPCS=$((OCCUPIED_VPCS + 1))
             KEEP_THESE+=("$REGION: $VPC_ID ($NAME) $DEFAULT_TAG")
@@ -170,7 +170,7 @@ echo ""
 
 if [ $OCCUPIED_VPCS -gt 0 ]; then
     echo "---"
-    echo "⚠️  VPCs to KEEP (have resources):"
+    echo "VPCs to KEEP (have resources):"
     echo "---"
     for vpc in "${KEEP_THESE[@]}"; do
         echo "  • $vpc"
@@ -189,7 +189,7 @@ if [ $EMPTY_VPCS -gt 0 ]; then
     echo "To delete a VPC, use:"
     echo "  aws ec2 delete-vpc --vpc-id vpc-xxxxx --region REGION"
     echo ""
-    echo "⚠️  Note: Default VPCs can be deleted but AWS recreates them easily."
+    echo "Note: Default VPCs can be deleted but AWS recreates them easily."
     echo "   Most people keep default VPCs unless they have a specific reason."
 else
     echo "✓ No empty VPCs found - all VPCs are in use!"

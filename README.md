@@ -1,153 +1,120 @@
 # AWS Serverless Stock Screener
 
-🤖 A serverless stock screening system that identifies beaten-down Russell 1000 stocks using a contrarian value strategy.
+A serverless system that screens Russell 1000 stocks for contrarian value opportunities using drawdown analysis.
 
-## 🎯 Overview
+A written article about this project is available at [timtimtim87.github.io](https://timtimtim87.github.io).
 
-This system automatically:
-- Collects daily Russell 1000 stock data and calculates drawdowns
-- Stores data in CSV files on S3 for ultra-low cost (~$0.30/month)
-- Provides Telegram bot interface for instant data access
-- Enables local analysis by downloading CSV files
-- Implements contrarian value strategy (buy beaten-down stocks, sell winners)
+## Overview
 
-## 🏗️ Architecture
+Collects daily price data for Russell 1000 stocks, calculates 180-day drawdowns, and surfaces the worst-performing stocks as potential buy candidates. A Telegram bot provides real-time access to the data.
 
-- **AWS Lambda** - Serverless data collection and bot functions
-- **Amazon S3** - Ultra-low cost CSV data storage
-- **Telegram Bot** - Real-time notifications and commands
-- **Alpaca Markets** - Stock market data and paper trading
-- **Local Analysis** - Jupyter notebooks for data visualization
+## Architecture
 
-## 💰 Cost Structure
+- **AWS Lambda** - Data collection and Telegram bot handler
+- **Amazon S3** - CSV data storage
+- **AWS Parameter Store** - Credential storage
+- **Telegram Bot** - Command interface
+- **Polygon.io** - Market data feed
+- **Alpaca Markets** - Portfolio tracking
 
-- **S3 Storage:** ~$0.30/month for CSV files
-- **Lambda Execution:** ~$2-5/month for daily runs
-- **Total:** Under $10/month for full operation
+## Cost
 
-## 📊 Investment Strategy
+- S3: ~$0.30/month
+- Lambda: ~$2-5/month
+- Total: under $10/month
 
-**Contrarian Value Approach:**
-- **Buy Signal:** Stocks with worst 180-day drawdowns
-- **Sell Signal:** When top 5 positions average ≥100% gains
-- **Universe:** Russell 1000 stocks
+## Strategy
 
-## 🚀 Quick Start
+Buy signal: Russell 1000 stocks with the worst 180-day drawdowns.
+Exit signal: When the top 5 positions average 100% unrealized gains.
+
+## Setup
 
 ### Prerequisites
-- AWS Account
-- Alpaca Markets Account (Paper Trading)
-- Telegram Account
-- Python 3.11+
-- AWS CLI v2
+
+- AWS account with CLI configured
 - AWS SAM CLI
+- Alpaca Markets account
+- Telegram bot token
+- Polygon.io API key
+- Python 3.12
 
-### Setup Steps
+### Deploy
 
-1. **Clone and setup:**
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/aws-stock-screener.git
-   cd aws-stock-screener
-   ```
+```bash
+git clone https://github.com/YOUR_USERNAME/aws-stock-screener.git
+cd aws-stock-screener
+pip install -r requirements.txt
+sam build
+sam deploy --guided
+```
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Parameter Store
 
-3. **Configure AWS:**
-   ```bash
-   aws configure
-   ```
+Store credentials at these paths before deploying:
 
-4. **Deploy:**
-   ```bash
-   sam build --use-container
-   sam deploy --guided
-   ```
+```
+/screener/polygon/api_key
+/screener/alpaca/api_key
+/screener/alpaca/secret_key
+/screener/alpaca/base_url
+/screener/telegram/bot_token
+/screener/telegram/chat_id   (optional — restricts access to one user)
+```
 
-## 📱 Telegram Bot Commands
+### Set Telegram Webhook
 
-- `/screen` - View top 10 worst drawdown stocks
-- `/portfolio` - Current portfolio summary
-- `/monitor` - Check profit-taking opportunities
-- `/account` - Account balance and status
-- `/download` - Get CSV download links
-- `/history` - Historical performance summary
+After deploying, run:
 
-## 📁 Project Structure
+```bash
+./deploy_telegram_bot.sh
+```
+
+## Telegram Commands
+
+| Command | Description |
+|---------|-------------|
+| /dashboard | Daily overview: account, portfolio, top candidates |
+| /screen | Top 10 worst drawdown stocks |
+| /portfolio | Current positions |
+| /monitor | Profit target check |
+| /account | Alpaca account balance |
+| /stats | Data file status |
+| /trigger | Manually invoke data collection |
+| /download | Presigned S3 download links |
+
+## Project Structure
 
 ```
 aws-stock-screener/
 ├── src/
-│   ├── shared/           # Common utilities
-│   ├── data_collector/   # Daily data gathering Lambda
-│   └── telegram_bot/     # Bot interface Lambda
-├── infrastructure/       # Deployment scripts
-├── analysis/            # Local data analysis tools
-├── tests/              # Integration tests
-├── docs/               # Documentation
-├── template.yaml       # SAM deployment config
-└── README.md
+│   ├── daily_collector/    # Lambda: daily data collection
+│   └── telegram_bot/       # Lambda: Telegram webhook handler
+├── analysis/               # Local analysis notebooks
+├── docs/                   # Additional documentation
+├── template.yaml           # SAM deployment template
+├── build_historical_data.py
+└── russell_1000_symbols.py
 ```
 
-## 🔐 Security
+## Data Files (S3)
 
-- All API keys stored in AWS Parameter Store
-- No hardcoded credentials
-- IAM roles with least-privilege access
-- Secure webhook endpoints
+| File | Description |
+|------|-------------|
+| russell_1000_drawdown_results.csv | Full daily drawdown data |
+| daily_top_candidates.csv | Top 10 candidates per day |
+| portfolio_snapshots.csv | Daily portfolio positions |
 
-## 📈 Data Outputs
+## Security
 
-1. **`daily_screening_results.csv`** - Complete Russell 1000 daily data
-2. **`portfolio_snapshots.csv`** - Daily portfolio positions
-3. **`top_candidates.csv`** - Top 10 drawdown candidates per day
+- Credentials stored in AWS Parameter Store, not in code
+- IAM roles scoped to required resources only
+- Telegram webhook restricted to authorized chat ID (optional)
 
-## 🧪 Testing
+## Disclaimer
 
-Start with paper trading:
-```bash
-# Run integration tests
-python tests/test_integration.py
+For educational and informational purposes only. Not financial advice.
 
-# Test Telegram bot locally
-python tests/test_telegram_bot.py
-```
+## License
 
-## 📚 Documentation
-
-- [Implementation Guide](docs/implementation-guide.md)
-- [API Documentation](docs/api-docs.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
-## ⚠️ Disclaimer
-
-This system is for educational purposes and to support investment decisions. Always:
-- Start with paper trading
-- Begin with small positions when going live
-- Monitor performance closely
-- Never invest more than you can afford to lose
-- Consider consulting a financial advisor
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-- Create an issue for bugs or feature requests
-- Check the [troubleshooting guide](docs/troubleshooting.md)
-- Review CloudWatch logs for debugging
-
----
-
-⭐ **Star this repo if it helps you!**
+MIT — see [LICENSE](LICENSE).

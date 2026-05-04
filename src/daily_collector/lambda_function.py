@@ -41,7 +41,7 @@ def lambda_handler(event, context):
         }
         
         today = datetime.now().date()
-        print(f"📅 Analysis date: {today}")
+        print(f"Analysis date: {today}")
         
         # Get COMPLETE Russell 1000 symbols from CSV files
         russell_symbols = get_complete_russell_1000_symbols()
@@ -230,7 +230,7 @@ def get_current_market_data(api_key, russell_symbols):
         return {}
             
     except Exception as e:
-        print(f"❌ Error fetching current data: {str(e)}")
+        print(f"Error fetching current data: {str(e)}")
         return {}
 
 def calculate_180_day_drawdowns_optimized(api_key, current_data, today):
@@ -393,7 +393,7 @@ def append_to_csv(s3_client, bucket_name, filename, data):
         print(f"Saved {len(new_df)} rows to {filename}")
         
     except Exception as e:
-        print(f"❌ Error with {filename}: {str(e)}")
+        print(f"Error with {filename}: {str(e)}")
         raise
 
 def save_to_csv(s3_client, bucket_name, filename, data):
@@ -404,5 +404,5 @@ def save_to_csv(s3_client, bucket_name, filename, data):
         s3_client.put_object(Bucket=bucket_name, Key=filename, Body=csv_content, ContentType='text/csv')
         print(f"Saved {len(data)} rows to {filename}")
     except Exception as e:
-        print(f"❌ Error saving {filename}: {str(e)}")
+        print(f"Error saving {filename}: {str(e)}")
         raise

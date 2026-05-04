@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Russell 1000 Stock Screener - Telegram Bot Setup"
+echo "Russell 1000 Stock Screener - Telegram Bot Setup"
 echo "=================================================="
 
 # Colors for output
@@ -12,23 +12,23 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}$1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}Error: $1${NC}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}Warning: $1${NC}"
 }
 
 print_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}$1${NC}"
 }
 
 # Check prerequisites
-echo "📋 Checking prerequisites..."
+echo "Checking prerequisites..."
 
 # Check AWS CLI
 if ! command -v aws &> /dev/null; then
@@ -52,7 +52,7 @@ print_status "Prerequisites check passed"
 
 # Step 1: Build and Deploy
 echo ""
-echo "🏗️  Step 1: Building and deploying Lambda functions..."
+echo "Step 1: Building and deploying Lambda functions..."
 
 sam build --use-container
 if [ $? -ne 0 ]; then
@@ -72,7 +72,7 @@ print_status "Deployment completed"
 
 # Step 2: Get the webhook URL
 echo ""
-echo "🔗 Step 2: Getting webhook URL..."
+echo "Step 2: Getting webhook URL..."
 
 WEBHOOK_URL=$(aws cloudformation describe-stacks \
     --stack-name stock-screener-test \
@@ -90,7 +90,7 @@ print_status "Webhook URL: $WEBHOOK_URL"
 
 # Step 3: Get Bot Token
 echo ""
-echo "🔑 Step 3: Retrieving bot token..."
+echo "Step 3: Retrieving bot token..."
 
 BOT_TOKEN=$(aws ssm get-parameter \
     --name "/screener/telegram/bot_token" \
@@ -108,7 +108,7 @@ print_status "Bot token retrieved"
 
 # Step 4: Set Telegram Webhook
 echo ""
-echo "📡 Step 4: Setting up Telegram webhook..."
+echo "Step 4: Setting up Telegram webhook..."
 
 WEBHOOK_RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
     -d "url=${WEBHOOK_URL}" \
@@ -125,7 +125,7 @@ fi
 
 # Step 5: Test webhook
 echo ""
-echo "🧪 Step 5: Testing webhook..."
+echo "Step 5: Testing webhook..."
 
 WEBHOOK_INFO=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getWebhookInfo")
 print_info "Webhook info: $WEBHOOK_INFO"
@@ -135,14 +135,14 @@ BOT_INFO=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getMe")
 BOT_USERNAME=$(echo "$BOT_INFO" | grep -o '"username":"[^"]*"' | cut -d'"' -f4)
 
 echo ""
-print_status "🎉 Telegram Bot Setup Complete!"
+print_status "Telegram Bot Setup Complete"
 echo ""
-echo "📱 Your bot details:"
+echo "Bot details:"
 echo "   • Bot Username: @$BOT_USERNAME"
 echo "   • Webhook URL: $WEBHOOK_URL"
 echo "   • Status: Active"
 echo ""
-echo "🔧 Testing your bot:"
+echo "Testing your bot:"
 echo "   1. Open Telegram and search for: @$BOT_USERNAME"
 echo "   2. Start a chat and send: /start"
 echo "   3. Try these commands:"

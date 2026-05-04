@@ -53,9 +53,9 @@ class RussellDataBuilder:
         # Create data directory
         os.makedirs(self.data_dir, exist_ok=True)
         
-        print("🚀 Russell 1000 Historical Data Builder")
+        print("Russell 1000 Historical Data Builder")
         print("=" * 50)
-        print(f"📁 Data directory: {os.path.abspath(self.data_dir)}")
+        print(f"Data directory: {os.path.abspath(self.data_dir)}")
     
     def get_russell_1000_symbols(self):
         """Return complete Russell 1000 symbols list"""
@@ -69,9 +69,9 @@ class RussellDataBuilder:
         end_date = datetime.now().date() - timedelta(days=1)  # Yesterday
         start_date = end_date - timedelta(days=days)
         
-        print(f"📅 Fetching data from {start_date} to {end_date}")
-        print(f"🔄 Processing {len(symbols)} symbols using IEX feed...")
-        print(f"⏱️  Estimated runtime: {len(symbols) * 0.1 / 60:.1f} minutes")
+        print(f"Fetching data from {start_date} to {end_date}")
+        print(f"Processing {len(symbols)} symbols using IEX feed...")
+        print(f"Estimated runtime: {len(symbols) * 0.1 / 60:.1f} minutes")
         
         all_data = []
         failed_symbols = []
@@ -81,7 +81,7 @@ class RussellDataBuilder:
             if i > 0 and i % 50 == 0:
                 elapsed = i * 0.1 / 60
                 remaining = (len(symbols) - i) * 0.1 / 60
-                print(f"   📊 Progress: {i}/{len(symbols)} ({i/len(symbols)*100:.1f}%) - "
+                print(f"   Progress: {i}/{len(symbols)} ({i/len(symbols)*100:.1f}%) - "
                       f"Elapsed: {elapsed:.1f}m, Remaining: {remaining:.1f}m")
             
             try:
@@ -117,32 +117,32 @@ class RussellDataBuilder:
                                 'volume': int(bar['v'])
                             })
                     else:
-                        if i < 10:  # Only show first 10 failures to avoid spam
-                            print(f"   ⚠️  {symbol}: Insufficient data ({len(bars)} bars)")
+                        if i < 10:
+                            print(f"   {symbol}: Insufficient data ({len(bars)} bars)")
                         failed_symbols.append(symbol)
-                        
+
                 elif response.status_code == 403:
-                    if i < 10:  # Only show first 10 failures
-                        print(f"   ❌ {symbol}: 403 Forbidden")
+                    if i < 10:
+                        print(f"   {symbol}: 403 Forbidden")
                     failed_symbols.append(symbol)
-                    
+
                 else:
-                    if i < 10:  # Only show first 10 failures
-                        print(f"   ⚠️  {symbol}: API error {response.status_code}")
+                    if i < 10:
+                        print(f"   {symbol}: API error {response.status_code}")
                     failed_symbols.append(symbol)
-                    
+
             except Exception as e:
-                if i < 10:  # Only show first 10 failures
-                    print(f"   ❌ {symbol}: Error - {str(e)}")
+                if i < 10:
+                    print(f"   {symbol}: Error - {str(e)}")
                 failed_symbols.append(symbol)
             
             # Rate limiting (conservative with IEX)
             time.sleep(0.1)  # 100ms between requests
         
-        print(f"\n✅ Data collection complete!")
-        print(f"   📊 Successful: {len(symbols) - len(failed_symbols)} symbols")
-        print(f"   ❌ Failed: {len(failed_symbols)} symbols")
-        print(f"   📈 Total data points: {len(all_data):,}")
+        print(f"\nData collection complete.")
+        print(f"   Successful: {len(symbols) - len(failed_symbols)} symbols")
+        print(f"   Failed: {len(failed_symbols)} symbols")
+        print(f"   Total data points: {len(all_data):,}")
         
         if failed_symbols and len(failed_symbols) <= 20:
             print(f"   Failed symbols: {', '.join(failed_symbols)}")
@@ -154,7 +154,7 @@ class RussellDataBuilder:
     def calculate_drawdowns(self, df):
         """Calculate 180-day drawdown metrics for each symbol"""
         
-        print(f"📈 Calculating drawdowns for {df['symbol'].nunique()} symbols...")
+        print(f"Calculating drawdowns for {df['symbol'].nunique()} symbols...")
         
         results = []
         
@@ -199,23 +199,20 @@ class RussellDataBuilder:
     def save_datasets(self, price_data, drawdown_data):
         """Save datasets to CSV files"""
         
-        print(f"💾 Saving datasets...")
-        
-        # Save raw price data
+        print("Saving datasets...")
+
         price_file = os.path.join(self.data_dir, 'russell_1000_daily_prices.csv')
         price_data.to_csv(price_file, index=False)
-        print(f"   ✅ Raw price data: {price_file} ({len(price_data):,} rows)")
-        
-        # Save drawdown analysis
+        print(f"   Raw price data: {price_file} ({len(price_data):,} rows)")
+
         drawdown_file = os.path.join(self.data_dir, 'russell_1000_drawdowns.csv')
         drawdown_data.to_csv(drawdown_file, index=False)
-        print(f"   ✅ Drawdown analysis: {drawdown_file} ({len(drawdown_data)} rows)")
-        
-        # Save top candidates (worst drawdowns)
+        print(f"   Drawdown analysis: {drawdown_file} ({len(drawdown_data)} rows)")
+
         top_candidates = drawdown_data.nsmallest(50, 'drawdown_pct')
         candidates_file = os.path.join(self.data_dir, 'top_drawdown_candidates.csv')
         top_candidates.to_csv(candidates_file, index=False)
-        print(f"   ✅ Top candidates: {candidates_file} ({len(top_candidates)} rows)")
+        print(f"   Top candidates: {candidates_file} ({len(top_candidates)} rows)")
         
         # Save metadata
         metadata = {
@@ -229,34 +226,34 @@ class RussellDataBuilder:
         metadata_file = os.path.join(self.data_dir, 'dataset_metadata.json')
         with open(metadata_file, 'w') as f:
             json.dump(metadata, f, indent=2)
-        print(f"   ✅ Metadata: {metadata_file}")
+        print(f"   Metadata: {metadata_file}")
         
         return price_file, drawdown_file, candidates_file
     
     def show_summary(self, drawdown_data):
         """Show summary statistics"""
         
-        print(f"\n📊 RUSSELL 1000 DATASET SUMMARY")
+        print("\nRUSSELL 1000 DATASET SUMMARY")
         print("=" * 60)
-        
-        print(f"🎯 Total stocks analyzed: {len(drawdown_data)}")
-        print(f"📅 Average data points per stock: {drawdown_data['data_points'].mean():.1f}")
-        print(f"📈 Date range: {drawdown_data['date_range_start'].min()} to {drawdown_data['date_range_end'].max()}")
-        
-        print(f"\n🔻 Drawdown Statistics:")
-        print(f"   📉 Worst drawdown: {drawdown_data['drawdown_pct'].min():.1f}%")
-        print(f"   📊 Average drawdown: {drawdown_data['drawdown_pct'].mean():.1f}%")
-        print(f"   📈 Best performing: {drawdown_data['drawdown_pct'].max():.1f}%")
-        print(f"   🕐 Average days since peak: {drawdown_data['days_since_peak'].mean():.0f} days")
-        
-        print(f"\n🏆 Top 10 Worst Drawdowns (Contrarian Candidates):")
+
+        print(f"Total stocks analyzed: {len(drawdown_data)}")
+        print(f"Average data points per stock: {drawdown_data['data_points'].mean():.1f}")
+        print(f"Date range: {drawdown_data['date_range_start'].min()} to {drawdown_data['date_range_end'].max()}")
+
+        print("\nDrawdown Statistics:")
+        print(f"   Worst drawdown: {drawdown_data['drawdown_pct'].min():.1f}%")
+        print(f"   Average drawdown: {drawdown_data['drawdown_pct'].mean():.1f}%")
+        print(f"   Best performing: {drawdown_data['drawdown_pct'].max():.1f}%")
+        print(f"   Average days since peak: {drawdown_data['days_since_peak'].mean():.0f} days")
+
+        print("\nTop 10 Worst Drawdowns:")
         top_10 = drawdown_data.nsmallest(10, 'drawdown_pct')
         for i, (_, row) in enumerate(top_10.iterrows(), 1):
             print(f"   {i:2d}. {row['symbol']:6s}: {row['drawdown_pct']:6.1f}% "
                   f"(${row['current_price']:6.2f} from ${row['peak_price']:6.2f}, "
                   f"{row['days_since_peak']} days ago)")
-        
-        print(f"\n🚀 Best Performers (Recent Momentum):")
+
+        print("\nBest Performers:")
         top_performers = drawdown_data.nlargest(5, 'drawdown_pct')
         for i, (_, row) in enumerate(top_performers.iterrows(), 1):
             print(f"   {i}. {row['symbol']:6s}: {row['drawdown_pct']:+6.1f}% "
@@ -266,7 +263,7 @@ class RussellDataBuilder:
         """Run the complete data building process"""
         
         try:
-            print(f"⏰ Starting at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"Starting at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             
             # Get complete Russell 1000 symbol list
             symbols = self.get_russell_1000_symbols()
@@ -275,7 +272,7 @@ class RussellDataBuilder:
             price_data, failed_symbols = self.fetch_historical_data(symbols)
             
             if price_data.empty:
-                print("❌ No data collected! Check your API credentials and IEX access.")
+                print("No data collected. Check your API credentials and IEX access.")
                 return
             
             # Calculate drawdowns
@@ -287,18 +284,17 @@ class RussellDataBuilder:
             # Show summary
             self.show_summary(drawdown_data)
             
-            print(f"\n🎉 SUCCESS! Russell 1000 historical dataset built successfully.")
-            print(f"📁 Files saved in: {os.path.abspath(self.data_dir)}")
-            print(f"⏰ Completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            
-            print(f"\n📋 Next steps:")
+            print(f"\nDataset built successfully.")
+            print(f"Files saved in: {os.path.abspath(self.data_dir)}")
+            print(f"Completed at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+            print("\nNext steps:")
             print(f"   1. Review the CSV files for data quality")
             print(f"   2. Upload to S3: aws s3 cp {self.data_dir}/ s3://your-bucket/data/ --recursive")
-            print(f"   3. Build your daily Lambda function")
-            print(f"   4. Create Telegram bot for instant access")
+            print(f"   3. Deploy Lambda functions via SAM")
             
         except Exception as e:
-            print(f"❌ Error: {str(e)}")
+            print(f"Error: {str(e)}")
             raise
 
 def main():
@@ -306,7 +302,7 @@ def main():
     
     # Check for .env file
     if not os.path.exists('.env'):
-        print("❌ Please create a .env file with your Alpaca credentials:")
+        print("Please create a .env file with your Alpaca credentials:")
         print("   ALPACA_API_KEY=your_paper_api_key_here")
         print("   ALPACA_SECRET_KEY=your_paper_secret_key_here")
         return
