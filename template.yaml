@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'Russell 1000 Stock Screener - Complete Production System'
+Description: Russell 1000 Stock Screener - Complete Production System
 
 Parameters:
   Environment:
@@ -52,7 +52,7 @@ Resources:
                 Action:
                   - ssm:GetParameter
                   - ssm:GetParameters
-                Resource: 
+                Resource:
                   - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/screener/*"
         - PolicyName: S3Access
           PolicyDocument:
@@ -65,7 +65,7 @@ Resources:
                   - s3:DeleteObject
                   - s3:ListBucket
                   - s3:HeadObject
-                Resource: 
+                Resource:
                   - !GetAtt DataBucket.Arn
                   - !Sub "${DataBucket.Arn}/*"
         - PolicyName: LambdaInvokeAccess
@@ -87,13 +87,13 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 1024
       Timeout: 900  # 15 minutes for full collection
-      Description: 'Daily Russell 1000 data collection and drawdown analysis'
+      Description: "Daily Russell 1000 data collection and drawdown analysis"
       Events:
         DailySchedule:
           Type: Schedule
           Properties:
-            Schedule: cron(0 11 * * ? *)  # 6 AM ET (11 AM UTC)
-            Description: 'Daily collection at 6 AM ET'
+            Schedule: "cron(0 11 * * ? *)"  # 6 AM ET (11 AM UTC)
+            Description: "Daily collection at 6 AM ET"
             Enabled: true
 
   # Telegram Bot Lambda Function  
@@ -105,7 +105,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 512
       Timeout: 60
-      Description: 'Telegram bot for stock screening commands'
+      Description: "Telegram bot for stock screening commands"
       Events:
         TelegramWebhook:
           Type: Api
@@ -128,25 +128,25 @@ Resources:
 
 Outputs:
   DataBucket:
-    Description: S3 bucket for CSV storage
+    Description: "S3 bucket for CSV storage"
     Value: !Ref DataBucket
     Export:
       Name: !Sub "${Environment}-screener-data-bucket"
-  
+
   TelegramWebhookUrl:
-    Description: Telegram webhook URL (use this to set up Telegram webhook)
+    Description: "Telegram webhook URL (use this to set up Telegram webhook)"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/webhook"
     Export:
       Name: !Sub "${Environment}-telegram-webhook-url"
-  
+
   DailyCollectorFunctionName:
-    Description: Daily collector function name
+    Description: "Daily collector function name"
     Value: !Ref DailyDataCollectorFunction
     Export:
       Name: !Sub "${Environment}-daily-collector-function"
 
   TelegramBotFunctionName:
-    Description: Telegram bot function name  
+    Description: "Telegram bot function name"
     Value: !Ref TelegramBotFunction
     Export:
       Name: !Sub "${Environment}-telegram-bot-function"

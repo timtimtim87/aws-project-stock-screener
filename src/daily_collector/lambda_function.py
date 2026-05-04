@@ -7,14 +7,7 @@ import time
 from datetime import datetime, timedelta
 
 def lambda_handler(event, context):
-    """
-    UPDATED Russell 1000 system with complete ticker list from quality dashboard CSVs
-    - Uses COMPLETE Russell 1000 list from uploaded CSV files
-    - Alphabetically sorted and deduplicated
-    - Processes 900+ Russell 1000 stocks with 180-day drawdown analysis
-    """
-    
-    print("🚀 Starting UPDATED Russell 1000 analysis with complete CSV ticker list...")
+    print("Starting Russell 1000 daily analysis...")
     start_time = time.time()
     
     try:
@@ -52,27 +45,19 @@ def lambda_handler(event, context):
         
         # Get COMPLETE Russell 1000 symbols from CSV files
         russell_symbols = get_complete_russell_1000_symbols()
-        print(f"📊 Analyzing COMPLETE Russell 1000: {len(russell_symbols)} stocks")
-        
-        # STEP 1: Get current market snapshot
-        print("📸 Getting current market snapshot...")
+        print(f"Analyzing {len(russell_symbols)} Russell 1000 stocks")
+
         current_data = get_current_market_data(polygon_api_key, russell_symbols)
-        print(f"✅ Current data for {len(current_data)} Russell 1000 stocks")
-        
-        # STEP 2: Calculate 180-day drawdowns for each stock
-        print("📈 Calculating 180-day drawdowns...")
+        print(f"Current data for {len(current_data)} stocks")
+
         drawdown_results = calculate_180_day_drawdowns_optimized(polygon_api_key, current_data, today)
-        print(f"✅ Calculated drawdowns for {len(drawdown_results)} stocks")
-        
-        # STEP 3: Rank and get candidates
+        print(f"Calculated drawdowns for {len(drawdown_results)} stocks")
+
         ranked_results = rank_drawdown_results(drawdown_results, today)
         top_candidates = ranked_results[:10]
-        
-        # STEP 4: Portfolio data
+
         portfolio_data = collect_portfolio_data(alpaca_headers, alpaca_base_url, today)
-        print(f"✅ Portfolio: {len(portfolio_data)} positions")
-        
-        # STEP 5: Save results
+        print(f"Portfolio: {len(portfolio_data)} positions")
         bucket_name = os.environ.get('S3_BUCKET_NAME')
         files_saved = 0
         
@@ -100,8 +85,8 @@ def lambda_handler(event, context):
             'status': 'success'
         }
         
-        print(f"✅ UPDATED processing completed in {execution_time:.1f}s")
-        print(f"📊 Summary: {summary}")
+        print(f"Processing completed in {execution_time:.1f}s")
+        print(f"Summary: {summary}")
         
         return {
             'statusCode': 200,
@@ -109,19 +94,15 @@ def lambda_handler(event, context):
         }
         
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
         import traceback
-        print(f"❌ Traceback: {traceback.format_exc()}")
+        print(f"Error: {str(e)}")
+        print(traceback.format_exc())
         return {
             'statusCode': 500,
             'body': json.dumps({'error': str(e), 'status': 'failed'})
         }
 
 def get_complete_russell_1000_symbols():
-    """
-    Complete Russell 1000 symbols from quality dashboard CSV files
-    Alphabetically sorted and deduplicated
-    """
     
     symbols = [
         'A', 'AAON', 'AAL', 'AAPL', 'ABT', 'ABBV', 'ABNB', 'ACN', 'ACGL', 'ADC', 'ADP', 
@@ -207,11 +188,9 @@ def get_complete_russell_1000_symbols():
         'ZBH', 'ZBRA', 'ZION', 'ZS', 'ZTS'
     ]
     
-    # Return as set for fast lookups, ensuring no duplicates
-    unique_symbols = sorted(list(set(symbols)))
-    print(f"📊 Total unique symbols: {len(unique_symbols)}")
-    
-    return set(unique_symbols)
+    unique_symbols = set(symbols)
+    print(f"Total unique symbols: {len(unique_symbols)}")
+    return unique_symbols
 
 def get_current_market_data(api_key, russell_symbols):
     """Get current market data for Russell 1000 stocks from snapshot"""
@@ -262,8 +241,7 @@ def calculate_180_day_drawdowns_optimized(api_key, current_data, today):
     start_date = today - timedelta(days=250)  # Buffer for weekends/holidays
     end_date = today - timedelta(days=1)  # Yesterday
     
-    print(f"📈 Processing {len(current_data)} stocks for 180-day drawdowns")
-    print(f"📈 Date range: {start_date} to {end_date}")
+    print(f"Processing {len(current_data)} stocks for 180-day drawdowns ({start_date} to {end_date})")
     
     processed_count = 0
     success_count = 0
@@ -273,7 +251,7 @@ def calculate_180_day_drawdowns_optimized(api_key, current_data, today):
         try:
             if processed_count % 50 == 0:
                 progress = (processed_count / total_stocks) * 100
-                print(f"🔄 Progress: {processed_count}/{total_stocks} ({progress:.1f}%) - {success_count} successful")
+                print(f"Progress: {processed_count}/{total_stocks} ({progress:.1f}%) - {success_count} successful")
             
             response = requests.get(
                 f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/1/day/{start_date.isoformat()}/{end_date.isoformat()}",
@@ -299,10 +277,10 @@ def calculate_180_day_drawdowns_optimized(api_key, current_data, today):
                             success_count += 1
                             
                             if success_count <= 10:
-                                print(f"✅ {symbol}: {result['drawdown_pct']:.1f}% ({result['days_since_peak']} days)")
+                                print(f"{symbol}: {result['drawdown_pct']:.1f}% ({result['days_since_peak']} days)")
                             
             elif response.status_code == 429:
-                print(f"⚠️  Rate limited, waiting 60s...")
+                print("Rate limited, waiting 60s...")
                 time.sleep(60)
                 continue
             
@@ -314,11 +292,11 @@ def calculate_180_day_drawdowns_optimized(api_key, current_data, today):
             
         except Exception as e:
             if processed_count < 10:
-                print(f"⚠️  Error processing {symbol}: {str(e)}")
+                print(f"Error processing {symbol}: {str(e)}")
             processed_count += 1
             continue
-    
-    print(f"✅ Successfully calculated {len(drawdown_results)} drawdowns from {total_stocks} stocks")
+
+    print(f"Calculated {len(drawdown_results)} drawdowns from {total_stocks} stocks")
     return drawdown_results
 
 def calculate_stock_drawdown(symbol, historical_bars, current_info, date):
@@ -384,11 +362,11 @@ def collect_portfolio_data(headers, base_url, date):
                         'market_value': round(float(position['market_value']), 2),
                         'unrealized_pl': round(float(position['unrealized_pl']), 2)
                     })
-                except:
+                except Exception:
                     continue
-                    
+
     except Exception as e:
-        print(f"⚠️  Portfolio error: {str(e)}")
+        print(f"Portfolio error: {str(e)}")
     
     return portfolio_data
 
@@ -412,7 +390,7 @@ def append_to_csv(s3_client, bucket_name, filename, data):
         
         csv_content = combined_df.to_csv(index=False)
         s3_client.put_object(Bucket=bucket_name, Key=filename, Body=csv_content, ContentType='text/csv')
-        print(f"✅ Saved {len(new_df)} rows to {filename}")
+        print(f"Saved {len(new_df)} rows to {filename}")
         
     except Exception as e:
         print(f"❌ Error with {filename}: {str(e)}")
@@ -424,7 +402,7 @@ def save_to_csv(s3_client, bucket_name, filename, data):
         df = pd.DataFrame(data)
         csv_content = df.to_csv(index=False)
         s3_client.put_object(Bucket=bucket_name, Key=filename, Body=csv_content, ContentType='text/csv')
-        print(f"✅ Saved {len(data)} rows to {filename}")
+        print(f"Saved {len(data)} rows to {filename}")
     except Exception as e:
         print(f"❌ Error saving {filename}: {str(e)}")
         raise

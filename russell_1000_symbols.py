@@ -1,8 +1,4 @@
-"""
-Russell 1000 Stock Symbols
-Generated from QUALITY_DASHBOARD_2025-11-04-2.csv
-Total symbols: 991
-"""
+"""Russell 1000 stock symbols."""
 
 def get_russell_1000_symbols():
     """
@@ -115,21 +111,6 @@ def get_russell_1000_symbols():
     
     return sorted(unique_symbols)
 
-def format_currency(amount):
-    """Format number as currency string"""
-    return f"${amount:,.2f}"
-
-def format_percentage(decimal_value):
-    """Format decimal as percentage string"""
-    return f"{decimal_value:.2%}"
-
-def calculate_drawdown(current_price, peak_price):
-    """Calculate drawdown percentage"""
-    if peak_price == 0:
-        return 0
-    return ((current_price - peak_price) / peak_price) * 100
-
-# Test the function
 if __name__ == "__main__":
     symbols = get_russell_1000_symbols()
     print(f"Russell 1000 symbols loaded: {len(symbols)} unique symbols")
